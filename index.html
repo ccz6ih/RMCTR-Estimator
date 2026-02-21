@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RMCTR Estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0B2A35;--teal2:#1E4D5C;--amber:#B4692D;--amber2:#D4893D;
+  --cream:#F4EDE3;--cream2:#FAF7F2;--tan:#EDE4D8;--brown:#3C2D0F;
+  --red:#C03B1A;--green:#0D7A55;--yellow:#B45309;
+  --gray:#6B7280;--gray2:#9CA3AF;--white:#FFFFFF;
+  --shadow:0 4px 24px rgba(11,42,53,.13);--radius:10px;
+  --font-d:'DM Serif Display',serif;--font-b:'DM Sans',sans-serif;--font-m:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--cream2);color:var(--brown);min-height:100vh;font-size:15px;line-height:1.55;-webkit-tap-highlight-color:transparent;}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--cream)}::-webkit-scrollbar-thumb{background:var(--amber2);border-radius:4px}
+#shell{display:flex;min-height:100vh}
+#sidebar{width:260px;min-width:260px;background:var(--teal);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;transition:transform .3s ease;z-index:100;}
+#main{flex:1;overflow-x:hidden;display:flex;flex-direction:column;min-width:0}
+.sb-logo{padding:24px 20px 16px;border-bottom:1px solid rgba(180,105,45,.3)}
+.sb-logo-badge{width:52px;height:52px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:22px;color:var(--white);margin-bottom:10px;box-shadow:0 4px 16px rgba(180,105,45,.4)}
+.sb-logo h1{font-family:var(--font-d);font-size:18px;color:var(--white);line-height:1.2}
+.sb-logo p{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;letter-spacing:.04em}
+.sb-nav{padding:16px 12px;flex:1}
+.sb-nav-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:0 8px;margin-bottom:6px;margin-top:14px}
+.sb-btn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 12px;border-radius:8px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.75);font-size:14px;font-family:var(--font-b);text-align:left;transition:all .15s;-webkit-appearance:none;min-height:44px}
+.sb-btn:hover,.sb-btn:active{background:rgba(255,255,255,.07);color:var(--white)}
+.sb-btn.active{background:rgba(180,105,45,.2);color:var(--amber2)}
+.sb-btn svg{width:18px;height:18px;flex-shrink:0;opacity:.7}
+.sb-btn.active svg{opacity:1}
+.sb-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:11.5px;color:rgba(255,255,255,.4)}
+#topbar{background:var(--white);border-bottom:2px solid var(--tan);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+#topbar h2{font-family:var(--font-d);font-size:21px;color:var(--teal)}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:8px;font-size:13.5px;font-family:var(--font-b);font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;-webkit-appearance:none;touch-action:manipulation;min-height:44px}
+.btn-primary{background:var(--amber);color:var(--white)}
+.btn-primary:active{background:#9a5a25}
+.btn-secondary{background:var(--cream);color:var(--teal);border:1.5px solid var(--tan)}
+.btn-teal{background:var(--teal);color:var(--white)}
+.btn-ghost{background:none;color:var(--gray);border:1.5px solid var(--tan)}
+.btn-danger{background:none;color:var(--red);border:1.5px solid rgba(192,59,26,.2)}
+.btn-sm{padding:8px 14px;font-size:12.5px;min-height:36px}
+#content{padding:24px;flex:1}
+.page{display:none}
+.page.active{display:block}
+.dash-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--white);border-radius:var(--radius);padding:18px 20px;border-top:3px solid var(--amber);box-shadow:var(--shadow)}
+.stat-card .num{font-family:var(--font-d);font-size:30px;color:var(--teal);line-height:1;margin-bottom:4px}
+.stat-card .label{font-size:12px;color:var(--gray)}
+.jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.job-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;border:1.5px solid transparent}
+.job-card:active{opacity:.85}
+.job-card-header{background:var(--teal);padding:14px 16px;position:relative}
+.job-card-header h3{color:var(--white);font-size:15px;font-weight:600}
+.job-card-header p{color:rgba(255,255,255,.55);font-size:12px;margin-top:2px}
+.job-card-badge{position:absolute;top:12px;right:12px;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600}
+.badge-complete{background:rgba(13,122,85,.25);color:#4ADE80}
+.badge-draft{background:rgba(180,105,45,.25);color:var(--amber2)}
+.job-card-body{padding:14px 16px}
+.job-card-meta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--gray)}
+.job-card-total{font-family:var(--font-m);font-size:17px;color:var(--teal);font-weight:600;margin-top:8px}
+.job-card-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray)}
+.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.4;display:block}
+.empty-state h3{font-family:var(--font-d);font-size:20px;color:var(--teal);margin-bottom:6px}
+.search-bar{position:relative;margin-bottom:20px}
+.search-bar input{width:100%;padding:12px 16px 12px 42px;border-radius:8px;border:1.5px solid var(--tan);background:var(--white);font-family:var(--font-b);font-size:14px;color:var(--brown);outline:none}
+.search-bar input:focus{border-color:var(--amber)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gray2);pointer-events:none}
+.form-sections{display:flex;flex-direction:column;gap:24px}
+.form-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.form-section-header{background:var(--teal);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;border-left:4px solid var(--amber)}
+.form-section-header h3{color:var(--white);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.form-section-body{padding:20px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;font-weight:600;color:var(--teal);letter-spacing:.05em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border-radius:7px;border:1.5px solid var(--tan);background:var(--cream2);font-family:var(--font-b);font-size:14px;color:var(--brown);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;width:100%}
+.form-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--amber);background:var(--white)}
+.form-group textarea{resize:vertical;min-height:72px}
+.form-full{grid-column:1/-1}
+.dyn-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.dyn-row{padding:12px;border-radius:8px;background:var(--cream2);border:1.5px solid var(--tan);display:flex;flex-direction:column;gap:8px}
+.dyn-row-fields{display:flex;flex-wrap:wrap;gap:10px}
+.dyn-row-fields .form-group{flex:1;min-width:140px}
+.dyn-row-fields .form-group.narrow{flex:0 0 90px;min-width:90px}
+.dyn-row-fields .form-group.sev-col{flex:0 0 130px;min-width:130px}
+.sev-select{padding:9px 10px;border-radius:7px;border:1.5px solid var(--tan);font-family:var(--font-b);font-size:13px;cursor:pointer;background:var(--cream2);outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;width:100%}
+.sev-critical{border-color:#EF4444;background:rgba(239,68,68,.06);color:var(--red)}
+.sev-warn{border-color:#F59E0B;background:rgba(245,158,11,.06);color:var(--yellow)}
+.sev-ok{border-color:#10B981;background:rgba(16,185,129,.06);color:var(--green)}
+.sev-warning{border-color:#F59E0B;background:rgba(245,158,11,.06);color:var(--yellow)}
+.sev-neutral{border-color:var(--tan);background:var(--cream2);color:var(--gray)}
+.remove-btn{width:100%;padding:10px;border-radius:7px;border:none;cursor:pointer;background:rgba(192,59,26,.08);color:var(--red);font-size:13px;font-family:var(--font-b);font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;-webkit-appearance:none;min-height:40px}
+.remove-btn:active{background:var(--red);color:var(--white)}
+.add-row-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px 14px;border-radius:7px;border:1.5px dashed var(--amber2);background:none;color:var(--amber);font-size:13px;font-family:var(--font-b);cursor:pointer;touch-action:manipulation;-webkit-appearance:none;min-height:44px}
+.add-row-btn:active{background:rgba(180,105,45,.07)}
+.totals-panel{background:var(--teal);border-radius:var(--radius);padding:20px;color:var(--white);margin-top:4px}
+.totals-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
+.totals-row.divider{border-top:1px solid rgba(255,255,255,.15);margin-top:8px;padding-top:14px}
+.totals-row.grand{font-size:19px;font-family:var(--font-d)}
+.totals-row .lbl{color:rgba(255,255,255,.65)}
+.totals-row .val{font-family:var(--font-m);color:var(--amber2)}
+.totals-row.grand .val{color:#F0C070;font-size:22px}
+.totals-row.deposit .val{color:#86EFAC}
+.photo-upload-zone{border:2px dashed var(--amber2);border-radius:10px;background:var(--cream2);padding:28px 20px;text-align:center;cursor:pointer;position:relative;touch-action:manipulation}
+.photo-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2}
+.photo-upload-zone .upload-icon{font-size:32px;margin-bottom:8px;display:block}
+.photo-upload-zone p{font-size:13px;color:var(--gray)}
+.photo-upload-zone .hint{font-size:11.5px;color:var(--gray2);margin-top:4px}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:14px}
+.photo-card{border-radius:9px;overflow:hidden;border:1.5px solid var(--tan);background:var(--white);box-shadow:var(--shadow)}
+.photo-card img{width:100%;height:130px;object-fit:cover;display:block}
+.photo-card-body{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.photo-card-body input{padding:7px 8px;border-radius:6px;border:1.5px solid var(--tan);font-family:var(--font-b);font-size:12.5px;color:var(--brown);background:var(--cream2);outline:none;width:100%;-webkit-appearance:none}
+.photo-remove-btn{width:100%;padding:8px;border-radius:6px;border:none;background:rgba(192,59,26,.1);color:var(--red);font-size:12px;cursor:pointer;font-family:var(--font-b);touch-action:manipulation;-webkit-appearance:none;min-height:36px}
+.photo-remove-btn:active{background:var(--red);color:#fff}
+#toast{position:fixed;bottom:24px;right:16px;left:16px;z-index:9999;padding:13px 20px;border-radius:9px;font-size:13.5px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.2);transform:translateY(120px);opacity:0;transition:all .3s ease;pointer-events:none;text-align:center}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{background:var(--teal);color:var(--white);border-left:4px solid var(--amber)}
+#toast.error{background:var(--red);color:var(--white)}
+#pdf-modal{position:fixed;inset:0;z-index:1000;background:rgba(11,42,53,.85);display:none;align-items:center;justify-content:center;padding:16px}
+#pdf-modal.open{display:flex}
+#pdf-modal-inner{background:var(--white);border-radius:14px;width:100%;max-width:860px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column}
+#pdf-modal-header{background:var(--teal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--amber)}
+#pdf-modal-header h3{color:var(--white);font-family:var(--font-d);font-size:18px}
+#pdf-modal-body{flex:1;overflow-y:auto}
+/* PDF doc styles */
+#pdf-doc{width:816px;background:#FFF;font-family:'DM Sans',sans-serif;font-size:13px;color:#3C2D0F;line-height:1.5}
+.pdf-header{background:#0B2A35;padding:24px 28px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:4px solid #B4692D}
+.pdf-company h1{color:#FFF;font-size:26px;font-family:'DM Serif Display',serif;line-height:1.1}
+.pdf-company p{color:#D4893D;font-size:11px;margin-top:2px}
+.pdf-company .addr{color:rgba(255,255,255,.5);font-size:10px;margin-top:6px;line-height:1.7}
+.pdf-job-info{text-align:right}
+.pdf-job-info .lbl{color:rgba(255,255,255,.4);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.pdf-job-info .val{color:#FFF;font-size:12px;font-weight:600}
+.pdf-sh{background:#0B2A35;color:#FFF;padding:8px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-left:4px solid #B4692D}
+.pdf-sh.t2{background:#1E4D5C}
+.pdf-info-grid{display:grid;grid-template-columns:1fr 1fr;background:#F4EDE3;padding:14px 20px;gap:14px}
+.pdf-info-row{display:flex;gap:6px;font-size:11px;margin-bottom:3px}
+.pdf-info-row .k{color:#6B7280;width:110px;flex-shrink:0;font-weight:600}
+.pdf-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.pdf-table th{background:#0B2A35;color:#FFF;padding:7px 10px;text-align:left;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.pdf-table td{padding:7px 10px;border-bottom:1px solid #EDE4D8;vertical-align:middle}
+.pdf-table tr:nth-child(even) td{background:#FAF7F2}
+.pdf-table tr:nth-child(odd) td{background:#F4EDE3}
+.pdf-dot.critical{color:#EF4444}.pdf-dot.warn{color:#F59E0B}.pdf-dot.ok{color:#10B981}
+.pdf-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9.5px;font-weight:700}
+.pdf-badge.critical{background:rgba(239,68,68,.12);color:#C03B1A}
+.pdf-badge.warn{background:rgba(245,158,11,.12);color:#B45309}
+.pdf-badge.ok{background:rgba(16,185,129,.12);color:#0D7A55}
+.pdf-badge.neutral{background:rgba(107,114,128,.1);color:#6B7280}
+.pdf-alert{background:#FEF2F2;border-left:4px solid #EF4444;padding:10px 14px;font-size:11px;color:#C03B1A}
+.pdf-totals{background:#0B2A35;padding:16px 20px}
+.pdf-tr{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
+.pdf-tr .tl{color:rgba(255,255,255,.6)}.pdf-tr .tv{color:#D4893D;font-family:'JetBrains Mono',monospace}
+.pdf-tr.grand{border-top:1.5px solid rgba(255,255,255,.2);margin-top:8px;padding-top:10px}
+.pdf-tr.grand .tl{color:#FFF;font-size:16px}.pdf-tr.grand .tv{color:#F0C070;font-size:19px}
+.pdf-tr.dep .tl{color:rgba(255,255,255,.5);font-size:11px}.pdf-tr.dep .tv{color:#86EFAC;font-size:13px}
+.pdf-warranty{background:#ECFDF5;border-left:4px solid #059669;padding:10px 14px;font-size:11px;color:#065F46}
+.pdf-photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px;background:#FAF7F2}
+.pdf-photo-item{border-radius:6px;overflow:hidden;border:1px solid #EDE4D8}
+.pdf-photo-item img{width:100%;display:block;max-height:200px;object-fit:cover}
+.pdf-photo-caption{padding:5px 8px;font-size:10px;color:#6B7280;font-style:italic;background:#F4EDE3}
+.pdf-footer{background:#0B2A35;padding:12px 20px;text-align:center;font-size:10px;color:rgba(255,255,255,.4);border-top:2px solid #B4692D}
+.pdf-money{font-family:'JetBrains Mono',monospace;color:#0B2A35;font-weight:600}
+.pdf-phase{color:#D4893D;font-weight:700}
+/* Mobile */
+#hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--teal);-webkit-appearance:none;touch-action:manipulation;min-width:44px;min-height:44px;align-items:center;justify-content:center}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;-webkit-tap-highlight-color:transparent}
+@media(max-width:768px){
+  #sidebar{position:fixed;left:0;top:0;transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #hamburger{display:flex}
+  #overlay.open{display:block}
+  #content{padding:12px}
+  #topbar{padding:10px 12px}
+  #topbar h2{font-size:17px}
+  .topbar-actions .btn span{display:none}
+  .dash-stats{grid-template-columns:1fr 1fr}
+  .jobs-grid{grid-template-columns:1fr}
+  .dyn-row-fields .form-group{flex:0 0 100%;min-width:100%}
+  .dyn-row-fields .form-group.narrow{flex:0 0 100%;min-width:100%}
+  .dyn-row-fields .form-group.sev-col{flex:0 0 100%;min-width:100%}
+  .form-grid{grid-template-columns:1fr}
+  .form-section-body{padding:14px}
+  .photo-grid{grid-template-columns:1fr 1fr}
+  .editor-toolbar{flex-wrap:wrap}
+  .editor-toolbar .btn{flex:1;min-width:120px;justify-content:center}
+}
+</style>
+</head>
+<body>
+<div id="shell">
+
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-badge">R</div>
+    <h1>RMCTR</h1>
+    <p>Rocky Mountain Cooling Tower Repair</p>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-nav-label">Menu</div>
+    <button class="sb-btn active" id="nav-dashboard">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </button>
+    <button class="sb-btn" id="nav-new">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      New Estimate
+    </button>
+    <button class="sb-btn" id="nav-editor">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Current Estimate
+    </button>
+    <div class="sb-nav-label" style="margin-top:20px">Company</div>
+    <button class="sb-btn" id="nav-settings">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Company Settings
+    </button>
+  </div>
+  <div class="sb-footer">v2.0 &middot; RMCTR Estimator</div>
+</nav>
+
+<div id="main">
+  <header id="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="hamburger" aria-label="Menu">
+        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <h2 id="page-title">Dashboard</h2>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" id="btn-new-top">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        <span>New Estimate</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="dash-stats">
+        <div class="stat-card"><div class="num" id="stat-total">0</div><div class="label">Total Jobs</div></div>
+        <div class="stat-card"><div class="num" id="stat-revenue">$0</div><div class="label">Est. Revenue</div></div>
+        <div class="stat-card"><div class="num" id="stat-month">0</div><div class="label">This Month</div></div>
+        <div class="stat-card"><div class="num" id="stat-avg">$0</div><div class="label">Avg Value</div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <h3 style="font-family:var(--font-d);font-size:18px;color:var(--teal)">Recent Estimates</h3>
+      </div>
+      <div class="search-bar">
+        <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Search by customer, address, unit..."/>
+      </div>
+      <div id="jobs-grid" class="jobs-grid"></div>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="page-editor" class="page">
+      <div class="editor-toolbar" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="btn btn-ghost" id="btn-save">&#128190; Save Draft</button>
+        <button class="btn btn-secondary" id="btn-preview">&#128065; Preview PDF</button>
+        <button class="btn btn-teal" id="btn-email">&#128139; Email PDF</button>
+        <button class="btn btn-primary" id="btn-download">&#8659; Download PDF</button>
+      </div>
+      <div class="form-sections">
+
+        <div class="form-section">
+          <div class="form-section-header"><h3>Job Information</h3></div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Customer Name</label><input id="f-customer" placeholder="e.g. Ice Ranch"/></div>
+              <div class="form-group"><label>Site Address</label><input id="f-address" placeholder="841 Southpark Dr."/></div>
+              <div class="form-group"><label>Contact Phone</label><input id="f-phone" type="tel" placeholder="303-555-0000"/></div>
+              <div class="form-group"><label>Contact Email</label><input id="f-email" type="email" placeholder="contact@client.com"/></div>
+              <div class="form-group"><label>Inspection Date</label><input id="f-date" type="date"/></div>
+              <div class="form-group"><label>Unit Make / Model</label><input id="f-unit-make" placeholder="Baltimore Aircoil Company"/></div>
+              <div class="form-group"><label>Unit ID / Model</label><input id="f-unit-id" placeholder="CXV-134/P"/></div>
+              <div class="form-group"><label>Reference / Year</label><input id="f-ref" placeholder="Factory 2001"/></div>
+              <div class="form-group"><label>CHWS Enable Temp</label><input id="f-chws" placeholder="52 deg F"/></div>
+              <div class="form-group"><label>Ambient Temp</label><input id="f-ambient" placeholder="47 deg F"/></div>
+              <div class="form-group"><label>Status</label>
+                <select id="f-status"><option value="draft">Draft</option><option value="complete">Complete</option></select>
+              </div>
+              <div class="form-group"><label>Output Filename</label><input id="f-filename" placeholder="RMCTR_Customer_Estimate.pdf"/></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Inspection Findings</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;min-height:32px" id="btn-add-finding">+ Add</button>
+          </div>
+          <div class="form-section-body">
+            <div class="dyn-list" id="findings-list"></div>
+            <button class="add-row-btn" id="btn-add-finding2">+ Add Finding</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Performance Data</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;min-height:32px" id="btn-add-perf">+ Add</button>
+          </div>
+          <div class="form-section-body">
+            <div class="dyn-list" id="perf-list"></div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label>Efficiency Alert Message</label>
+              <textarea id="f-perf-alert" placeholder="Describe overall performance issues..."></textarea>
+            </div>
+            <button class="add-row-btn" id="btn-add-perf2">+ Add Metric</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Scope of Work</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;min-height:32px" id="btn-add-scope">+ Add</button>
+          </div>
+          <div class="form-section-body">
+            <div class="dyn-list" id="scope-list"></div>
+            <button class="add-row-btn" id="btn-add-scope2">+ Add Phase</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Materials</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;min-height:32px" id="btn-add-mat">+ Add</button>
+          </div>
+          <div class="form-section-body">
+            <div class="form-grid" style="margin-bottom:14px">
+              <div class="form-group"><label>Unit Description</label><input id="f-mat-unit" placeholder="BAC CXV-134P"/></div>
+              <div class="form-group"><label>Fill Pack Size</label><input id="f-mat-size" placeholder="L-105 x 52 Deep"/></div>
+              <div class="form-group"><label>Lead Time</label><input id="f-mat-lead" placeholder="3 Weeks - Order Immediately"/></div>
+            </div>
+            <div class="dyn-list" id="mat-list"></div>
+            <button class="add-row-btn" id="btn-add-mat2">+ Add Material</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Additional Costs</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;min-height:32px" id="btn-add-cost">+ Add</button>
+          </div>
+          <div class="form-section-body">
+            <div class="dyn-list" id="costs-list"></div>
+            <button class="add-row-btn" id="btn-add-cost2">+ Add Cost</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header"><h3>Totals</h3></div>
+          <div class="form-section-body">
+            <div class="form-grid" style="margin-bottom:16px">
+              <div class="form-group"><label>Materials Subtotal</label><input id="f-tot-mat" placeholder="$0.00"/></div>
+              <div class="form-group"><label>Labor Subtotal</label><input id="f-tot-labor" placeholder="$0.00"/></div>
+              <div class="form-group"><label>Additional Costs</label><input id="f-tot-add" placeholder="$0.00"/></div>
+              <div class="form-group"><label>Contingency</label><input id="f-tot-cont" placeholder="$0.00"/></div>
+              <div class="form-group"><label>Grand Total</label><input id="f-tot-grand" placeholder="$0.00"/></div>
+              <div class="form-group"><label>Deposit (50%)</label><input id="f-tot-deposit" placeholder="$0.00"/></div>
+            </div>
+            <div class="totals-panel">
+              <div class="totals-row"><span class="lbl">Materials</span><span class="val" id="tp-mat">-</span></div>
+              <div class="totals-row"><span class="lbl">Labor</span><span class="val" id="tp-labor">-</span></div>
+              <div class="totals-row"><span class="lbl">Additional</span><span class="val" id="tp-add">-</span></div>
+              <div class="totals-row"><span class="lbl">Contingency</span><span class="val" id="tp-cont">-</span></div>
+              <div class="totals-row divider grand"><span class="lbl">TOTAL</span><span class="val" id="tp-grand">-</span></div>
+              <div class="totals-row deposit"><span class="lbl">Deposit (50%)</span><span class="val" id="tp-deposit">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Notes &amp; Recommendations</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;min-height:32px" id="btn-add-note">+ Add</button>
+          </div>
+          <div class="form-section-body">
+            <div class="dyn-list" id="notes-list"></div>
+            <button class="add-row-btn" id="btn-add-note2">+ Add Note</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header">
+            <h3>Site Photos</h3>
+            <span id="photo-count-label" style="font-size:11px;color:rgba(255,255,255,.5)">0 photos</span>
+          </div>
+          <div class="form-section-body">
+            <div class="photo-grid" id="photo-grid"></div>
+            <div class="photo-upload-zone">
+              <input type="file" accept="image/*" multiple id="photo-file-input"/>
+              <span class="upload-icon">&#128247;</span>
+              <p><strong>Tap to add photos</strong></p>
+              <p class="hint">JPG, PNG - multiple OK - included in PDF</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header"><h3>Warranty &amp; Terms</h3></div>
+          <div class="form-section-body">
+            <div class="form-group">
+              <textarea id="f-warranty" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header"><h3>Send Estimate</h3></div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Recipient Email</label><input id="f-send-email" type="email" placeholder="client@company.com"/></div>
+              <div class="form-group"><label>CC (optional)</label><input id="f-cc-email" type="email" placeholder="tim@rmctr.com"/></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+              <button class="btn btn-teal" id="btn-email2">&#128139; Email PDF to Client</button>
+              <button class="btn btn-primary" id="btn-download2">&#8659; Download PDF</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="page-settings" class="page">
+      <div class="form-section">
+        <div class="form-section-header"><h3>Company Information</h3></div>
+        <div class="form-section-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Short Name</label><input id="s-name"/></div>
+            <div class="form-group form-full"><label>Full Company Name</label><input id="s-fullname"/></div>
+            <div class="form-group form-full"><label>Address</label><input id="s-address"/></div>
+            <div class="form-group"><label>Phone</label><input id="s-phone"/></div>
+            <div class="form-group"><label>Email</label><input id="s-email"/></div>
+            <div class="form-group"><label>Contact Name</label><input id="s-contact"/></div>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn btn-primary" id="btn-save-settings">Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div id="pdf-modal">
+  <div id="pdf-modal-inner">
+    <div id="pdf-modal-header">
+      <h3>PDF Preview</h3>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary btn-sm" id="btn-modal-download">&#8659; Download</button>
+        <button class="btn btn-ghost btn-sm" id="btn-modal-close">&#10005; Close</button>
+      </div>
+    </div>
+    <div id="pdf-modal-body"></div>
+  </div>
+</div>
+
+<div id="overlay"></div>
+<div id="toast"></div>
+
+<script>
+// ── Constants & State ──────────────────────────────────────────
+var LS_JOBS = 'rmctr_jobs';
+var LS_SETTINGS = 'rmctr_settings';
+var currentJobId = null;
+var photoStore = [];
+
+var defaultSettings = {
+  name:'RMCTR',
+  fullname:'Rocky Mountain Cooling Tower Repair',
+  address:'6272 South Routt Street, Littleton, CO 80127',
+  phone:'720-626-9805',
+  email:'info@RMCTR.com',
+  contact:'Tim Haran'
+};
+
+function getJobs(){ try{ return JSON.parse(localStorage.getItem(LS_JOBS)||'[]'); }catch(e){ return []; } }
+function saveJobs(jobs){ localStorage.setItem(LS_JOBS, JSON.stringify(jobs)); }
+function getSettings(){ try{ return JSON.parse(localStorage.getItem(LS_SETTINGS)||JSON.stringify(defaultSettings)); }catch(e){ return defaultSettings; } }
+function v(id){ var el=document.getElementById(id); return el ? el.value : ''; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function parseMoney(s){ return parseFloat(String(s).replace(/[$,]/g,''))||0; }
+
+// ── Toast ─────────────────────────────────────────────────────
+var toastTimer;
+function toast(msg, type){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + (type||'success');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.className=''; }, 3200);
+}
+
+// ── Navigation ────────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.sb-btn').forEach(function(b){ b.classList.remove('active'); });
+  var pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  var nb = document.getElementById('nav-'+id);
+  if(nb) nb.classList.add('active');
+  var titles = {dashboard:'Dashboard', editor:'Estimate Editor', settings:'Company Settings'};
+  document.getElementById('page-title').textContent = titles[id] || id;
+  if(id === 'dashboard') renderDashboard();
+  closeSidebar();
+  window.scrollTo(0,0);
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── Job Actions ───────────────────────────────────────────────
+function newJob(){
+  currentJobId = 'job_' + Date.now();
+  showPage('editor');
+  clearForm();
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-warranty').value = '1 Year - Parts & Service. Excludes motor and electrical components. Work commences 3 weeks after receipt of deposit and/or PO. All pricing is an estimate; final invoice based on actual time and materials. Valid 30 days from inspection.';
+  addFinding(); addFinding(); addFinding();
+  addPerf(); addPerf();
+  addScope(); addScope();
+  addMaterial(); addMaterial();
+  addCost(); addCost();
+  addNote(); addNote();
+  toast('New estimate started!');
+}
+
+function openJob(id){
+  var jobs = getJobs();
+  var job = null;
+  for(var i=0;i<jobs.length;i++){ if(jobs[i].id===id){ job=jobs[i]; break; } }
+  if(!job){ toast('Job not found','error'); return; }
+  currentJobId = id;
+  showPage('editor');
+  loadJobIntoForm(job.data);
+}
+
+function saveJob(){
+  var data = collectFormData();
+  var jobs = getJobs();
+  var idx = -1;
+  for(var i=0;i<jobs.length;i++){ if(jobs[i].id===currentJobId){ idx=i; break; } }
+  var entry = { id:currentJobId, updatedAt:Date.now(), data:data };
+  if(idx>=0) jobs[idx]=entry; else jobs.push(entry);
+  saveJobs(jobs);
+  toast('Saved!');
+}
+
+function deleteJob(id){
+  if(!confirm('Delete this estimate? This cannot be undone.')) return;
+  saveJobs(getJobs().filter(function(j){ return j.id!==id; }));
+  renderDashboard();
+  toast('Deleted');
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+function renderDashboard(filter){
+  filter = (filter||'').toLowerCase();
+  var jobs = getJobs();
+  var now = new Date();
+  var thisMonth = jobs.filter(function(j){
+    var d = new Date(j.updatedAt||0);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  }).length;
+  var totals = jobs.map(function(j){ return parseMoney((j.data&&j.data.totals&&j.data.totals.grand_total)||'0'); });
+  var revenue = totals.reduce(function(a,b){ return a+b; },0);
+  var avg = jobs.length ? revenue/jobs.length : 0;
+
+  document.getElementById('stat-total').textContent = jobs.length;
+  document.getElementById('stat-revenue').textContent = '$'+Math.round(revenue/1000)+'K';
+  document.getElementById('stat-month').textContent = thisMonth;
+  document.getElementById('stat-avg').textContent = '$'+Math.round(avg/1000)+'K';
+
+  var filtered = filter ? jobs.filter(function(j){
+    var jb = (j.data&&j.data.job)||{};
+    return (jb.customer_name||'').toLowerCase().indexOf(filter)>=0
+      || (jb.address||'').toLowerCase().indexOf(filter)>=0
+      || (jb.unit_id||'').toLowerCase().indexOf(filter)>=0;
+  }) : jobs;
+
+  var grid = document.getElementById('jobs-grid');
+  if(!filtered.length){
+    grid.innerHTML = '<div class="empty-state"><span class="icon">&#128203;</span><h3>'+(filter?'No results':'No estimates yet')+'</h3><p>'+(filter?'Try a different search term':'Tap "New Estimate" to get started')+'</p></div>';
+    return;
+  }
+
+  var html = '';
+  var rev = filtered.slice().reverse();
+  for(var i=0;i<rev.length;i++){
+    var job = rev[i];
+    var jb = (job.data&&job.data.job)||{};
+    var status = jb.status||'draft';
+    var total = (job.data&&job.data.totals&&job.data.totals.grand_total)||'--';
+    var date = jb.inspection_date || fmtDate(job.updatedAt);
+    html += '<div class="job-card" data-id="'+job.id+'">'
+      +'<div class="job-card-header">'
+      +'<h3>'+esc(jb.customer_name||'Untitled')+'</h3>'
+      +'<p>'+esc(jb.address||'No address')+'</p>'
+      +'<span class="job-card-badge badge-'+status+'">'+(status==='complete'?'COMPLETE':'DRAFT')+'</span>'
+      +'</div>'
+      +'<div class="job-card-body">'
+      +'<div class="job-card-meta"><span>'+esc(jb.unit_id||'--')+'</span><span>'+esc(date)+'</span></div>'
+      +'<div class="job-card-total">'+esc(total)+'</div>'
+      +'<div class="job-card-actions">'
+      +'<button class="btn btn-sm btn-primary" data-action="edit" data-id="'+job.id+'">Edit</button>'
+      +'<button class="btn btn-sm btn-secondary" data-action="preview" data-id="'+job.id+'">Preview</button>'
+      +'<button class="btn btn-sm btn-danger" data-action="delete" data-id="'+job.id+'">Delete</button>'
+      +'</div></div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function fmtDate(ts){
+  if(!ts) return '--';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ── Form Helpers ──────────────────────────────────────────────
+function clearForm(){
+  var ids = ['f-customer','f-address','f-phone','f-email','f-date','f-unit-make',
+    'f-unit-id','f-ref','f-chws','f-ambient','f-filename','f-perf-alert',
+    'f-mat-unit','f-mat-size','f-mat-lead','f-warranty','f-tot-mat','f-tot-labor',
+    'f-tot-add','f-tot-cont','f-tot-grand','f-tot-deposit','f-send-email','f-cc-email'];
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var st = document.getElementById('f-status'); if(st) st.value='draft';
+  ['findings-list','perf-list','scope-list','mat-list','costs-list','notes-list']
+    .forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=''; });
+  photoStore = [];
+  var pg = document.getElementById('photo-grid'); if(pg) pg.innerHTML='';
+  updatePhotoCountLabel();
+  updateTotalsPanel();
+}
+
+function updateTotalsPanel(){
+  var map = {mat:'f-tot-mat',labor:'f-tot-labor',add:'f-tot-add',cont:'f-tot-cont',grand:'f-tot-grand',deposit:'f-tot-deposit'};
+  Object.keys(map).forEach(function(k){
+    var el = document.getElementById('tp-'+k);
+    if(el) el.textContent = v(map[k]) || '-';
+  });
+}
+
+// ── Dynamic Row Builders ──────────────────────────────────────
+function makeSevSelect(cls, val, opts){
+  var sel = document.createElement('select');
+  sel.className = 'sev-select sev-'+val;
+  sel.setAttribute('data-cls', cls);
+  opts.forEach(function(o){
+    var opt = document.createElement('option');
+    opt.value = o.v; opt.textContent = o.l;
+    if(o.v===val) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+function addFinding(f){
+  f = f||{};
+  var sev = f.severity||'warn';
+  var row = document.createElement('div'); row.className='dyn-row';
+  var fields = document.createElement('div'); fields.className='dyn-row-fields';
+
+  var g1=document.createElement('div'); g1.className='form-group';
+  var l1=document.createElement('label'); l1.textContent='Category';
+  var i1=document.createElement('input'); i1.className='fc'; i1.placeholder='e.g. Water Reservoir'; i1.value=f.category||'';
+  g1.appendChild(l1); g1.appendChild(i1);
+
+  var g2=document.createElement('div'); g2.className='form-group';
+  var l2=document.createElement('label'); l2.textContent='Finding';
+  var t2=document.createElement('textarea'); t2.className='ff'; t2.rows=2; t2.placeholder='Describe the finding...'; t2.value=f.finding||'';
+  g2.appendChild(l2); g2.appendChild(t2);
+
+  var g3=document.createElement('div'); g3.className='form-group sev-col';
+  var l3=document.createElement('label'); l3.textContent='Severity';
+  var sel=makeSevSelect('fs',sev,[{v:'critical',l:'Critical'},{v:'warn',l:'Warning'},{v:'ok',l:'OK'}]);
+  sel.classList.add('fs');
+  g3.appendChild(l3); g3.appendChild(sel);
+
+  fields.appendChild(g1); fields.appendChild(g2); fields.appendChild(g3);
+  var rb=document.createElement('button'); rb.className='remove-btn'; rb.type='button'; rb.textContent='Remove Finding';
+  row.appendChild(fields); row.appendChild(rb);
+  document.getElementById('findings-list').appendChild(row);
+}
+
+function addPerf(p){
+  p = p||{};
+  var stat = p.status||'neutral';
+  var row=document.createElement('div'); row.className='dyn-row';
+  var fields=document.createElement('div'); fields.className='dyn-row-fields';
+
+  function mkG(lbl,cls,val,ph){
+    var g=document.createElement('div'); g.className='form-group';
+    var l=document.createElement('label'); l.textContent=lbl;
+    var i=document.createElement('input'); i.className=cls; i.value=val||''; i.placeholder=ph||'';
+    g.appendChild(l); g.appendChild(i); return g;
+  }
+
+  var g4=document.createElement('div'); g4.className='form-group sev-col';
+  var l4=document.createElement('label'); l4.textContent='Status';
+  var sel=makeSevSelect('ps',stat,[{v:'critical',l:'Critical'},{v:'warn',l:'Low'},{v:'ok',l:'Pass'},{v:'neutral',l:'Neutral'}]);
+  sel.classList.add('ps');
+  g4.appendChild(l4); g4.appendChild(sel);
+
+  fields.appendChild(mkG('Metric','pm',p.metric,'e.g. Cooling Delta'));
+  fields.appendChild(mkG('Measured','pv',p.measured,'~1 deg F'));
+  fields.appendChild(mkG('Expected','pe',p.expected,'>10 deg F expected'));
+  fields.appendChild(g4);
+
+  var rb=document.createElement('button'); rb.className='remove-btn'; rb.type='button'; rb.textContent='Remove Metric';
+  row.appendChild(fields); row.appendChild(rb);
+  document.getElementById('perf-list').appendChild(row);
+}
+
+function addScope(s){
+  s = s||{};
+  var row=document.createElement('div'); row.className='dyn-row';
+  var fields=document.createElement('div'); fields.className='dyn-row-fields';
+
+  function mkG(lbl,cls,val,ph,ta){
+    var g=document.createElement('div'); g.className='form-group';
+    var l=document.createElement('label'); l.textContent=lbl;
+    var inp=ta?document.createElement('textarea'):document.createElement('input');
+    inp.className=cls; inp.value=val||''; inp.placeholder=ph||'';
+    if(ta) inp.rows=2;
+    g.appendChild(l); g.appendChild(inp); return g;
+  }
+
+  fields.appendChild(mkG('Phase','sp',s.phase,'Day 1 - Demo'));
+  fields.appendChild(mkG('Description','sd',s.description,'Work description...',true));
+  fields.appendChild(mkG('Crew / Duration','sc',s.crew,'4 crew x $79/hr x 8 hrs'));
+  fields.appendChild(mkG('Labor Cost','sl',s.labor_cost,'$3,160.00'));
+
+  var rb=document.createElement('button'); rb.className='remove-btn'; rb.type='button'; rb.textContent='Remove Phase';
+  row.appendChild(fields); row.appendChild(rb);
+  document.getElementById('scope-list').appendChild(row);
+}
+
+function addMaterial(m){
+  m = m||{};
+  var row=document.createElement('div'); row.className='dyn-row';
+  var fields=document.createElement('div'); fields.className='dyn-row-fields';
+
+  function mkG(lbl,cls,val,ph,narrow){
+    var g=document.createElement('div'); g.className='form-group'+(narrow?' narrow':'');
+    var l=document.createElement('label'); l.textContent=lbl;
+    var i=document.createElement('input'); i.className=cls; i.value=val||''; i.placeholder=ph||'';
+    g.appendChild(l); g.appendChild(i); return g;
+  }
+
+  fields.appendChild(mkG('Description','md',m.description,'Fill media, nozzles...'));
+  fields.appendChild(mkG('Qty','mq',m.qty,'0',true));
+  fields.appendChild(mkG('Unit Rate','mr',m.unit_rate,'$358.15'));
+  fields.appendChild(mkG('Amount','ma',m.amount,'$3,223.35'));
+
+  var rb=document.createElement('button'); rb.className='remove-btn'; rb.type='button'; rb.textContent='Remove Material';
+  row.appendChild(fields); row.appendChild(rb);
+  document.getElementById('mat-list').appendChild(row);
+}
+
+function addCost(c){
+  c = c||{};
+  var row=document.createElement('div'); row.className='dyn-row';
+  var fields=document.createElement('div'); fields.className='dyn-row-fields';
+
+  function mkG(lbl,cls,val,ph){
+    var g=document.createElement('div'); g.className='form-group';
+    var l=document.createElement('label'); l.textContent=lbl;
+    var i=document.createElement('input'); i.className=cls; i.value=val||''; i.placeholder=ph||'';
+    g.appendChild(l); g.appendChild(i); return g;
+  }
+
+  fields.appendChild(mkG('Item','ci',c.item,'Heater Rental'));
+  fields.appendChild(mkG('Details','cd',c.details,'On-site heater for drying'));
+  fields.appendChild(mkG('Cost','cc',c.cost,'$225.00'));
+
+  var rb=document.createElement('button'); rb.className='remove-btn'; rb.type='button'; rb.textContent='Remove Cost';
+  row.appendChild(fields); row.appendChild(rb);
+  document.getElementById('costs-list').appendChild(row);
+}
+
+function addNote(n){
+  n = n||{};
+  var type = n.type||'ok';
+  var row=document.createElement('div'); row.className='dyn-row';
+  var fields=document.createElement('div'); fields.className='dyn-row-fields';
+
+  var g1=document.createElement('div'); g1.className='form-group sev-col';
+  var l1=document.createElement('label'); l1.textContent='Type';
+  var sel=makeSevSelect('nt',type,[{v:'warning',l:'Warning'},{v:'ok',l:'OK'}]);
+  sel.classList.add('nt');
+  g1.appendChild(l1); g1.appendChild(sel);
+
+  var g2=document.createElement('div'); g2.className='form-group';
+  var l2=document.createElement('label'); l2.textContent='Note';
+  var ta=document.createElement('textarea'); ta.className='nt-text'; ta.rows=2; ta.value=n.text||'';
+  g2.appendChild(l2); g2.appendChild(ta);
+
+  fields.appendChild(g1); fields.appendChild(g2);
+  var rb=document.createElement('button'); rb.className='remove-btn'; rb.type='button'; rb.textContent='Remove Note';
+  row.appendChild(fields); row.appendChild(rb);
+  document.getElementById('notes-list').appendChild(row);
+}
+
+// ── Collect & Load Form Data ──────────────────────────────────
+function collectFormData(){
+  var findings = Array.from(document.querySelectorAll('#findings-list .dyn-row')).map(function(r){
+    return { category:r.querySelector('.fc').value, finding:r.querySelector('.ff').value, severity:r.querySelector('.fs').value };
+  });
+  var performance = Array.from(document.querySelectorAll('#perf-list .dyn-row')).map(function(r){
+    return { metric:r.querySelector('.pm').value, measured:r.querySelector('.pv').value, expected:r.querySelector('.pe').value, status:r.querySelector('.ps').value };
+  });
+  var scope = Array.from(document.querySelectorAll('#scope-list .dyn-row')).map(function(r){
+    return { phase:r.querySelector('.sp').value, description:r.querySelector('.sd').value, crew:r.querySelector('.sc').value, labor_cost:r.querySelector('.sl').value };
+  });
+  var mats = Array.from(document.querySelectorAll('#mat-list .dyn-row')).map(function(r){
+    return { description:r.querySelector('.md').value, qty:r.querySelector('.mq').value||null, unit_rate:r.querySelector('.mr').value, amount:r.querySelector('.ma').value };
+  });
+  var costs = Array.from(document.querySelectorAll('#costs-list .dyn-row')).map(function(r){
+    return { item:r.querySelector('.ci').value, details:r.querySelector('.cd').value, cost:r.querySelector('.cc').value };
+  });
+  var notes = Array.from(document.querySelectorAll('#notes-list .dyn-row')).map(function(r){
+    return { type:r.querySelector('.nt').value, text:r.querySelector('.nt-text').value };
+  });
+  return {
+    job:{ customer_name:v('f-customer'), address:v('f-address'), contact_phone:v('f-phone'), contact_email:v('f-email'), inspection_date:v('f-date'), unit_make_model:v('f-unit-make'), unit_id:v('f-unit-id'), reference_doc:v('f-ref'), chws_enable_temp:v('f-chws'), ambient_temp:v('f-ambient'), output_filename:v('f-filename'), status:v('f-status') },
+    findings:findings,
+    performance:performance, performance_alert:v('f-perf-alert'),
+    scope_of_work:scope,
+    materials:{ unit_description:v('f-mat-unit'), fill_pack_size:v('f-mat-size'), lead_time:v('f-mat-lead'), items:mats },
+    additional_costs:costs,
+    totals:{ materials_subtotal:v('f-tot-mat'), labor_subtotal:v('f-tot-labor'), additional_costs:v('f-tot-add'), contingency:v('f-tot-cont'), grand_total:v('f-tot-grand'), deposit_amount:v('f-tot-deposit') },
+    notes:notes,
+    photos:photoStore.map(function(p){ return {dataUrl:p.dataUrl, caption:p.caption}; }),
+    warranty:v('f-warranty')
+  };
+}
+
+function loadJobIntoForm(data){
+  if(!data) return;
+  clearForm();
+  var j = data.job||{};
+  var setV = function(id,val){ var el=document.getElementById(id); if(el) el.value=val||''; };
+  setV('f-customer',j.customer_name); setV('f-address',j.address);
+  setV('f-phone',j.contact_phone); setV('f-email',j.contact_email);
+  setV('f-date',j.inspection_date); setV('f-unit-make',j.unit_make_model);
+  setV('f-unit-id',j.unit_id); setV('f-ref',j.reference_doc);
+  setV('f-chws',j.chws_enable_temp); setV('f-ambient',j.ambient_temp);
+  setV('f-filename',j.output_filename); setV('f-perf-alert',data.performance_alert);
+  setV('f-warranty',data.warranty);
+  var st=document.getElementById('f-status'); if(st) st.value=j.status||'draft';
+  var mat = data.materials||{};
+  setV('f-mat-unit',mat.unit_description); setV('f-mat-size',mat.fill_pack_size); setV('f-mat-lead',mat.lead_time);
+  var t = data.totals||{};
+  setV('f-tot-mat',t.materials_subtotal); setV('f-tot-labor',t.labor_subtotal);
+  setV('f-tot-add',t.additional_costs); setV('f-tot-cont',t.contingency);
+  setV('f-tot-grand',t.grand_total); setV('f-tot-deposit',t.deposit_amount);
+  (data.findings||[]).forEach(addFinding);
+  (data.performance||[]).forEach(addPerf);
+  (data.scope_of_work||[]).forEach(addScope);
+  (mat.items||[]).forEach(addMaterial);
+  (data.additional_costs||[]).forEach(addCost);
+  (data.notes||[]).forEach(addNote);
+  photoStore = [];
+  (data.photos||[]).forEach(function(p){
+    var id='ph_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    var entry={id:id, dataUrl:p.dataUrl, caption:p.caption||''};
+    photoStore.push(entry);
+    renderPhotoCard(entry);
+  });
+  updatePhotoCountLabel();
+  updateTotalsPanel();
+}
+
+// ── Settings ──────────────────────────────────────────────────
+function loadSettingsIntoForm(){
+  var s = getSettings();
+  ['name','fullname','address','phone','email','contact'].forEach(function(k){
+    var el=document.getElementById('s-'+k); if(el) el.value=s[k]||'';
+  });
+}
+function saveSettings(){
+  var s={};
+  ['name','fullname','address','phone','email','contact'].forEach(function(k){ s[k]=v('s-'+k); });
+  localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+  toast('Settings saved!');
+}
+
+// ── Photos ────────────────────────────────────────────────────
+function updatePhotoCountLabel(){
+  var el=document.getElementById('photo-count-label');
+  if(el) el.textContent = photoStore.length ? photoStore.length+' photo'+(photoStore.length!==1?'s':'') : '0 photos';
+}
+
+function handlePhotoUpload(e){
+  var files = Array.from(e.target.files);
+  files.forEach(function(file){
+    if(!file.type.match(/^image\//)) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var id='ph_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      var entry={id:id, dataUrl:ev.target.result, caption:''};
+      photoStore.push(entry);
+      renderPhotoCard(entry);
+      updatePhotoCountLabel();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+
+function renderPhotoCard(photo){
+  var grid=document.getElementById('photo-grid');
+  var card=document.createElement('div'); card.className='photo-card';
+  var img=document.createElement('img'); img.src=photo.dataUrl; img.alt='Site photo';
+  var body=document.createElement('div'); body.className='photo-card-body';
+  var inp=document.createElement('input'); inp.type='text'; inp.placeholder='Add caption...'; inp.value=photo.caption||'';
+  (function(pid){ inp.addEventListener('input',function(){ var p=photoStore.find(function(x){return x.id===pid;}); if(p) p.caption=inp.value; }); })(photo.id);
+  var rb=document.createElement('button'); rb.className='photo-remove-btn'; rb.type='button'; rb.textContent='Remove Photo'; rb.dataset.id=photo.id;
+  body.appendChild(inp); body.appendChild(rb);
+  card.appendChild(img); card.appendChild(body);
+  grid.appendChild(card);
+}
+
+function removePhoto(id){
+  photoStore = photoStore.filter(function(p){ return p.id!==id; });
+  document.querySelectorAll('.photo-remove-btn').forEach(function(btn){
+    if(btn.dataset.id===id){ var card=btn.closest('.photo-card'); if(card) card.remove(); }
+  });
+  updatePhotoCountLabel();
+}
+
+// ── PDF HTML Renderer ─────────────────────────────────────────
+function renderPDFHTML(data){
+  var co = getSettings();
+  var j = data.job||{};
+  var t = data.totals||{};
+  var mat = data.materials||{};
+
+  var SEV_L = {ok:'PASS', warn:'WARN', critical:'CRITICAL', neutral:'--'};
+  var PERF_L = {ok:'PASS', warn:'LOW', critical:'CRIT', neutral:'--'};
+
+  var findRows = (data.findings||[]).filter(function(f){ return f.category||f.finding; }).map(function(f){
+    var s=f.severity||'warn';
+    return '<tr><td style="text-align:center;width:28px"><span class="pdf-dot '+s+'">&#9679;</span></td><td style="width:130px"><b>'+esc(f.category)+'</b></td><td>'+esc(f.finding)+'</td></tr>';
+  }).join('');
+
+  var perfRows = (data.performance||[]).filter(function(p){ return p.metric; }).map(function(p){
+    var s=p.status||'neutral';
+    return '<tr><td>'+esc(p.metric)+'</td><td><b>'+esc(p.measured)+'</b></td><td style="color:#6B7280;font-style:italic">'+esc(p.expected)+'</td><td style="text-align:center"><span class="pdf-badge '+s+'">'+(PERF_L[s]||s.toUpperCase())+'</span></td></tr>';
+  }).join('');
+
+  var scopeRows = (data.scope_of_work||[]).filter(function(s){ return s.phase||s.description; }).map(function(s){
+    return '<tr><td><span class="pdf-phase">'+esc(s.phase)+'</span></td><td>'+esc(s.description)+'</td><td style="color:#6B7280;font-size:10.5px">'+esc(s.crew)+'</td><td style="text-align:right"><span class="pdf-money">'+esc(s.labor_cost)+'</span></td></tr>';
+  }).join('');
+
+  var matRows = (mat.items||[]).filter(function(m){ return m.description; }).map(function(m){
+    return '<tr><td>'+esc(m.description)+'</td><td style="text-align:center">'+(m.qty!=null?esc(m.qty):'--')+'</td><td style="text-align:right;color:#6B7280">'+esc(m.unit_rate)+'</td><td style="text-align:right"><span class="pdf-money">'+esc(m.amount)+'</span></td></tr>';
+  }).join('');
+
+  var costRows = (data.additional_costs||[]).filter(function(c){ return c.item; }).map(function(c){
+    return '<tr><td><b>'+esc(c.item)+'</b></td><td>'+esc(c.details)+'</td><td style="text-align:right"><span class="pdf-money">'+esc(c.cost)+'</span></td></tr>';
+  }).join('');
+
+  var noteRows = (data.notes||[]).filter(function(n){ return n.text; }).map(function(n){
+    var icon = n.type==='warning' ? '<span style="color:#EF4444">&#9888;</span>' : '<span style="color:#10B981">&#10004;</span>';
+    return '<tr><td style="text-align:center;width:28px">'+icon+'</td><td>'+esc(n.text)+'</td></tr>';
+  }).join('');
+
+  var photoHTML = '';
+  if((data.photos||[]).length){
+    photoHTML = '<div class="pdf-sh t2">Site Inspection Photos</div>'
+      +'<div class="pdf-photos-grid">'
+      +(data.photos||[]).map(function(p){
+        return '<div class="pdf-photo-item"><img src="'+p.dataUrl+'" alt="site photo"/>'+(p.caption?'<div class="pdf-photo-caption">'+esc(p.caption)+'</div>':'')+'</div>';
+      }).join('')+'</div>';
+  }
+
+  return '<div id="pdf-doc">'
+    +'<div class="pdf-header">'
+      +'<div class="pdf-company"><h1>'+esc(co.name)+'</h1><p>'+esc(co.fullname)+'</p><div class="addr">'+esc(co.address)+'<br>'+esc(co.phone)+' &middot; '+esc(co.email)+'<br>'+esc(co.contact)+'</div></div>'
+      +'<div class="pdf-job-info"><div class="lbl">INSPECTION ESTIMATE</div><div class="val">'+esc(j.customer_name||'--')+'</div><div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:4px">'+esc(j.address||'')+'</div><div style="color:rgba(255,255,255,.5);font-size:11px">'+esc(j.inspection_date||'')+'</div></div>'
+    +'</div>'
+    +'<div class="pdf-sh">Customer &amp; Unit Information</div>'
+    +'<div class="pdf-info-grid">'
+      +'<div>'
+        +'<div class="pdf-info-row"><span class="k">Customer</span><span>'+esc(j.customer_name||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Address</span><span>'+esc(j.address||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Phone</span><span>'+esc(j.contact_phone||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Email</span><span>'+esc(j.contact_email||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Date</span><span>'+esc(j.inspection_date||'--')+'</span></div>'
+      +'</div>'
+      +'<div>'
+        +'<div class="pdf-info-row"><span class="k">Unit Make</span><span>'+esc(j.unit_make_model||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Unit ID</span><span>'+esc(j.unit_id||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Reference</span><span>'+esc(j.reference_doc||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">CHWS Temp</span><span>'+esc(j.chws_enable_temp||'--')+'</span></div>'
+        +'<div class="pdf-info-row"><span class="k">Ambient</span><span>'+esc(j.ambient_temp||'--')+'</span></div>'
+      +'</div>'
+    +'</div>'
+    +(findRows ? '<div class="pdf-sh">Inspection Findings</div><table class="pdf-table"><thead><tr><th>&#9679;</th><th>Category</th><th>Finding</th></tr></thead><tbody>'+findRows+'</tbody></table>' : '')
+    +(perfRows ? '<div class="pdf-sh t2">Performance Data</div><table class="pdf-table"><thead><tr><th>Metric</th><th>Measured</th><th>Expected</th><th style="width:80px">Status</th></tr></thead><tbody>'+perfRows+'</tbody></table>' : '')
+    +(data.performance_alert ? '<div class="pdf-alert">&#9888; EFFICIENCY ALERT: '+esc(data.performance_alert)+'</div>' : '')
+    +(scopeRows ? '<div class="pdf-sh">Scope of Work &amp; Labor</div><table class="pdf-table"><thead><tr><th style="width:120px">Phase</th><th>Description</th><th style="width:150px">Crew</th><th style="width:90px;text-align:right">Labor</th></tr></thead><tbody>'+scopeRows+'</tbody></table>' : '')
+    +(matRows ? '<div class="pdf-sh t2">Materials - '+esc(mat.unit_description||'')+'</div>'+(mat.fill_pack_size||mat.lead_time ? '<div style="padding:8px 16px;background:#F4EDE3;font-size:10.5px;color:#6B7280">Fill Pack: '+esc(mat.fill_pack_size||'--')+' &nbsp;|&nbsp; Lead Time: <b style="color:#B45309">'+esc(mat.lead_time||'--')+'</b></div>' : '')+'<table class="pdf-table"><thead><tr><th>Description</th><th style="width:40px;text-align:center">Qty</th><th style="width:80px;text-align:right">Rate</th><th style="width:90px;text-align:right">Amount</th></tr></thead><tbody>'+matRows+'</tbody></table>' : '')
+    +(costRows ? '<div class="pdf-sh">Additional Costs</div><table class="pdf-table"><thead><tr><th style="width:140px">Item</th><th>Details</th><th style="width:90px;text-align:right">Cost</th></tr></thead><tbody>'+costRows+'</tbody></table>' : '')
+    +'<div class="pdf-totals">'
+      +'<div class="pdf-tr"><span class="tl">Materials</span><span class="tv">'+esc(t.materials_subtotal||'--')+'</span></div>'
+      +'<div class="pdf-tr"><span class="tl">Labor</span><span class="tv">'+esc(t.labor_subtotal||'--')+'</span></div>'
+      +'<div class="pdf-tr"><span class="tl">Additional Costs</span><span class="tv">'+esc(t.additional_costs||'--')+'</span></div>'
+      +'<div class="pdf-tr"><span class="tl">Contingency</span><span class="tv">'+esc(t.contingency||'--')+'</span></div>'
+      +'<div class="pdf-tr grand"><span class="tl">ESTIMATE TOTAL</span><span class="tv">'+esc(t.grand_total||'--')+'</span></div>'
+      +'<div class="pdf-tr dep"><span class="tl">Deposit Required (50%)</span><span class="tv">'+esc(t.deposit_amount||'--')+'</span></div>'
+    +'</div>'
+    +(noteRows ? '<div class="pdf-sh t2">Notes &amp; Recommendations</div><table class="pdf-table"><tbody>'+noteRows+'</tbody></table>' : '')
+    +(data.warranty ? '<div class="pdf-warranty"><b>WARRANTY &amp; TERMS:</b> '+esc(data.warranty)+'</div>' : '')
+    +photoHTML
+    +'<div class="pdf-footer">'+esc(co.name)+' &mdash; '+esc(co.fullname)+' | '+esc(co.address)+' | '+esc(co.phone)+' | '+esc(co.email)+' | '+esc(co.contact)+'<br>Professional estimate only. Figures subject to change based on actual conditions. &copy; '+new Date().getFullYear()+' RMCTR.</div>'
+    +'</div>';
+}
+
+// ── PDF Actions ───────────────────────────────────────────────
+function previewPDF(){
+  var data = collectFormData();
+  document.getElementById('pdf-modal-body').innerHTML = renderPDFHTML(data);
+  document.getElementById('pdf-modal').classList.add('open');
+}
+
+function previewJobPDF(id){
+  var jobs = getJobs();
+  var job = null;
+  for(var i=0;i<jobs.length;i++){ if(jobs[i].id===id){ job=jobs[i]; break; } }
+  if(!job) return;
+  document.getElementById('pdf-modal-body').innerHTML = renderPDFHTML(job.data);
+  document.getElementById('pdf-modal').classList.add('open');
+}
+
+function closePDFModal(){
+  document.getElementById('pdf-modal').classList.remove('open');
+}
+
+function downloadPDF(){
+  saveJob();
+  var data = collectFormData();
+  toast('Generating PDF...');
+  var container = document.createElement('div');
+  container.style.cssText='position:fixed;left:-9999px;top:0;width:816px;background:#fff;z-index:-1;';
+  container.innerHTML = renderPDFHTML(data);
+  document.body.appendChild(container);
+  setTimeout(function(){
+    var docEl = container.querySelector('#pdf-doc');
+    html2canvas(docEl, {scale:1.5, useCORS:true, backgroundColor:'#ffffff', logging:false}).then(function(canvas){
+      var imgData = canvas.toDataURL('image/jpeg',0.92);
+      var pdf = new window.jspdf.jsPDF('p','pt','a4');
+      var pdfW = pdf.internal.pageSize.getWidth();
+      var pdfH = pdf.internal.pageSize.getHeight();
+      var ratio = pdfW / canvas.width;
+      var scaledH = canvas.height * ratio;
+      var yPos = 0;
+      while(yPos < scaledH){
+        if(yPos > 0) pdf.addPage();
+        pdf.addImage(imgData,'JPEG',0,-yPos,pdfW,scaledH);
+        yPos += pdfH;
+      }
+      var fn = data.job.output_filename || 'RMCTR_'+(data.job.customer_name||'Estimate').replace(/\s+/g,'_')+'.pdf';
+      pdf.save(fn);
+      toast('PDF downloaded!');
+    }).catch(function(e){
+      toast('PDF error: '+e.message,'error');
+    }).finally(function(){
+      if(container.parentNode) document.body.removeChild(container);
+    });
+  }, 350);
+}
+
+function generateAndEmail(){
+  var data = collectFormData();
+  var co = getSettings();
+  var to = v('f-send-email') || data.job.contact_email || '';
+  var cc = v('f-cc-email');
+  var subj = encodeURIComponent('Cooling Tower Inspection & Estimate - '+(data.job.customer_name||'Your Property'));
+  var body = encodeURIComponent(
+    'Dear '+(data.job.customer_name||'Valued Customer')+',\n\n'
+    +'Thank you for the opportunity to inspect your cooling tower system'+(data.job.address?' at '+data.job.address:'')+'. Please find attached the detailed inspection estimate for your review.\n\n'
+    +'ESTIMATE SUMMARY:\n'
+    +'  Unit: '+(data.job.unit_id||'--')+' / '+(data.job.unit_make_model||'--')+'\n'
+    +'  Estimated Total: '+(data.totals&&data.totals.grand_total||'--')+'\n'
+    +'  Deposit (50%): '+(data.totals&&data.totals.deposit_amount||'--')+'\n'
+    +'  Materials Lead Time: '+(data.materials&&data.materials.lead_time||'Approx. 3 weeks')+'\n\n'
+    +'Please review and contact us to approve and schedule.\n\n'
+    +co.contact+'\n'+co.name+'\n'+co.phone+' | '+co.email
+  );
+  var mailto = 'mailto:'+to+'?subject='+subj+'&body='+body;
+  if(cc) mailto += '&cc='+encodeURIComponent(cc);
+  window.location.href = mailto;
+  setTimeout(downloadPDF, 900);
+}
+
+// ── Event Delegation Handlers ─────────────────────────────────
+function handleDynRemove(e){
+  var btn = e.target.closest('.remove-btn');
+  if(btn){ var row=btn.closest('.dyn-row'); if(row) row.remove(); }
+}
+
+function handleSevChange(e){
+  var sel = e.target.closest('.sev-select');
+  if(sel){ sel.className = 'sev-select sev-'+sel.value; }
+}
+
+function handleJobCardClick(e){
+  var del  = e.target.closest('[data-action="delete"]');
+  var prev = e.target.closest('[data-action="preview"]');
+  var edit = e.target.closest('[data-action="edit"]');
+  var card = e.target.closest('.job-card');
+  if(del)  { e.stopPropagation(); deleteJob(del.dataset.id); return; }
+  if(prev) { e.stopPropagation(); previewJobPDF(prev.dataset.id); return; }
+  if(edit) { e.stopPropagation(); openJob(edit.dataset.id); return; }
+  if(card && card.dataset.id) openJob(card.dataset.id);
+}
+
+// ── Boot: wire everything via addEventListener ─────────────────
+document.addEventListener('DOMContentLoaded', function(){
+
+  loadSettingsIntoForm();
+
+  // Sidebar nav
+  document.getElementById('nav-dashboard').addEventListener('click', function(){ showPage('dashboard'); });
+  document.getElementById('nav-new').addEventListener('click', function(){ newJob(); });
+  document.getElementById('nav-editor').addEventListener('click', function(){ showPage('editor'); });
+  document.getElementById('nav-settings').addEventListener('click', function(){ showPage('settings'); });
+
+  // Topbar
+  document.getElementById('hamburger').addEventListener('click', toggleSidebar);
+  document.getElementById('btn-new-top').addEventListener('click', function(){ newJob(); });
+  document.getElementById('overlay').addEventListener('click', toggleSidebar);
+
+  // Editor toolbar
+  document.getElementById('btn-save').addEventListener('click', saveJob);
+  document.getElementById('btn-preview').addEventListener('click', previewPDF);
+  document.getElementById('btn-email').addEventListener('click', generateAndEmail);
+  document.getElementById('btn-download').addEventListener('click', downloadPDF);
+
+  // Add-row buttons
+  document.getElementById('btn-add-finding').addEventListener('click', function(){ addFinding(); });
+  document.getElementById('btn-add-finding2').addEventListener('click', function(){ addFinding(); });
+  document.getElementById('btn-add-perf').addEventListener('click', function(){ addPerf(); });
+  document.getElementById('btn-add-perf2').addEventListener('click', function(){ addPerf(); });
+  document.getElementById('btn-add-scope').addEventListener('click', function(){ addScope(); });
+  document.getElementById('btn-add-scope2').addEventListener('click', function(){ addScope(); });
+  document.getElementById('btn-add-mat').addEventListener('click', function(){ addMaterial(); });
+  document.getElementById('btn-add-mat2').addEventListener('click', function(){ addMaterial(); });
+  document.getElementById('btn-add-cost').addEventListener('click', function(){ addCost(); });
+  document.getElementById('btn-add-cost2').addEventListener('click', function(){ addCost(); });
+  document.getElementById('btn-add-note').addEventListener('click', function(){ addNote(); });
+  document.getElementById('btn-add-note2').addEventListener('click', function(){ addNote(); });
+
+  // Totals live update
+  ['f-tot-mat','f-tot-labor','f-tot-add','f-tot-cont','f-tot-grand','f-tot-deposit'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updateTotalsPanel);
+  });
+
+  // Send section
+  document.getElementById('btn-email2').addEventListener('click', generateAndEmail);
+  document.getElementById('btn-download2').addEventListener('click', downloadPDF);
+
+  // Settings
+  document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
+
+  // PDF Modal
+  document.getElementById('btn-modal-download').addEventListener('click', downloadPDF);
+  document.getElementById('btn-modal-close').addEventListener('click', closePDFModal);
+  document.getElementById('pdf-modal').addEventListener('click', function(e){ if(e.target===this) closePDFModal(); });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', function(){ renderDashboard(this.value); });
+
+  // Dynamic list event delegation
+  ['findings-list','perf-list','scope-list','mat-list','costs-list','notes-list'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.addEventListener('click', handleDynRemove);
+    el.addEventListener('change', handleSevChange);
+  });
+
+  // Job card clicks
+  document.getElementById('jobs-grid').addEventListener('click', handleJobCardClick);
+
+  // Photos
+  document.getElementById('photo-file-input').addEventListener('change', handlePhotoUpload);
+  document.getElementById('photo-grid').addEventListener('click', function(e){
+    var btn = e.target.closest('.photo-remove-btn');
+    if(btn) removePhoto(btn.dataset.id);
+  });
+
+  // Initial render
+  renderDashboard();
+});
+</script>
+</body>
+</html>
