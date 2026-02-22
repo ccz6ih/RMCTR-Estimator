@@ -186,3 +186,11 @@
 [data-theme="dark"] .dash-actions .btn {
   border-color: #333;
 }
+
+[data-theme="dark"] .help-item {
+  border-color: #333;
+}
+
+[data-theme="dark"] .help-item b {
+  color: var(--amber);
+}

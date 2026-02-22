@@ -12,7 +12,7 @@ function showPage(id){
   if(pg) pg.classList.add('active');
   var nb = document.getElementById('nav-'+id);
   if(nb) nb.classList.add('active');
-  var titles = {dashboard:'Dashboard', editor:'Estimate Editor', settings:'Company Settings', customers:'Customers', catalog:'Parts Catalog'};
+  var titles = {dashboard:'Dashboard', editor:'Estimate Editor', settings:'Company Settings', customers:'Customers', catalog:'Parts Catalog', help:'Help & Info'};
   document.getElementById('page-title').textContent = titles[id] || id;
   if(id === 'dashboard') renderDashboard();
   if(id === 'customers') renderCustomersPage();
@@ -382,6 +382,7 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('nav-settings').addEventListener('click', function(){ showPage('settings'); });
   document.getElementById('nav-customers').addEventListener('click', function(){ showPage('customers'); });
   document.getElementById('nav-catalog').addEventListener('click', function(){ showPage('catalog'); });
+  document.getElementById('nav-help').addEventListener('click', function(){ showPage('help'); });
 
   // Topbar
   document.getElementById('hamburger').addEventListener('click', toggleSidebar);

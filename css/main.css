@@ -268,6 +268,15 @@ body{font-family:var(--font-b);background:var(--cream2);color:var(--brown);min-h
 .shortcut-row kbd{background:var(--teal);color:var(--white);padding:3px 8px;border-radius:4px;font-size:11px;font-family:var(--font-m);font-weight:600}
 .shortcut-row .sc-action{font-size:13px;color:var(--brown)}
 
+/* Help page */
+.help-list{display:flex;flex-direction:column;gap:0}
+.help-item{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--tan)}
+.help-item:last-child{border-bottom:none}
+.help-icon{font-size:24px;flex-shrink:0;width:36px;text-align:center;padding-top:2px}
+.help-item b{font-size:14px;display:block;margin-bottom:4px;color:var(--teal)}
+.help-item p{font-size:13px;line-height:1.6;color:var(--brown);margin:0 0 6px 0}
+.help-item p:last-child{margin-bottom:0}
+
 /* Dark mode toggle btn */
 .dark-toggle{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);padding:6px;border-radius:6px;transition:all .15s;display:flex;align-items:center;justify-content:center}
 .dark-toggle:hover{color:var(--white);background:rgba(255,255,255,.1)}

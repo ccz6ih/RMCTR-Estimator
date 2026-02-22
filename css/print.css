@@ -9,6 +9,7 @@
   .margin-calc, .btn,
   #pdf-modal, #template-modal, #catalog-modal,
   #qr-modal, #shortcuts-modal, #shopify-modal,
+  #install-banner, #page-help,
   .autocomplete-dropdown {
     display: none !important;
   }
