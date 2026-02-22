@@ -1,0 +1,75 @@
+@media print {
+  /* Hide non-content elements */
+  #sidebar, #topbar, #hamburger, #overlay, #toast,
+  .editor-toolbar, .add-row-btn, .remove-btn,
+  .photo-upload-zone, .search-bar,
+  .sb-footer, .topbar-actions, .dash-stats,
+  .dash-actions, .charts-row,
+  .job-card-actions, .version-bar,
+  .margin-calc, .btn,
+  #pdf-modal, #template-modal, #catalog-modal,
+  #qr-modal, #shortcuts-modal,
+  .autocomplete-dropdown {
+    display: none !important;
+  }
+
+  /* Reset layout */
+  #shell { display: block; }
+  #main { width: 100%; }
+  #content { padding: 0; }
+  .page { display: block !important; }
+  .page:not(.active) { display: none !important; }
+
+  /* Clean backgrounds */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .form-section {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 12px;
+  }
+
+  .form-section-header {
+    background: #0B2A35 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .totals-panel {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .stat-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+  }
+
+  /* Page breaks */
+  .photo-grid {
+    page-break-before: always;
+  }
+
+  /* Ensure inputs show values */
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    border: none !important;
+    background: transparent !important;
+    padding: 4px 0 !important;
+  }
+
+  .dyn-row {
+    border: 1px solid #ddd;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
