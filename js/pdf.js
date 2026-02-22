@@ -1,3 +1,9 @@
+// ── PDF Logo Helper ───────────────────────────────────────────
+function getPDFLogoHTML(size){
+  size = size || 44;
+  return '<img src="logo/rmctr-logo.png" alt="" style="width:'+size+'px;height:'+size+'px;border-radius:8px;object-fit:contain;margin-right:12px;vertical-align:middle" onerror="this.style.display=\'none\'"/>';
+}
+
 // ── PDF HTML Renderer ─────────────────────────────────────────
 function renderPDFHTML(data, theme){
   theme = theme || 'standard';
@@ -52,7 +58,7 @@ function renderPDFStandard(data){
 
   return '<div id="pdf-doc">'
     +'<div class="pdf-header">'
-      +'<div class="pdf-company"><h1>'+esc(co.name)+'</h1><p>'+esc(co.fullname)+'</p><div class="addr">'+esc(co.address)+'<br>'+esc(co.phone)+' &middot; '+esc(co.email)+'<br>'+esc(co.contact)+'</div></div>'
+      +'<div class="pdf-company" style="display:flex;align-items:flex-start">'+getPDFLogoHTML(48)+'<div><h1>'+esc(co.name)+'</h1><p>'+esc(co.fullname)+'</p><div class="addr">'+esc(co.address)+'<br>'+esc(co.phone)+' &middot; '+esc(co.email)+'<br>'+esc(co.contact)+'</div></div></div>'
       +'<div class="pdf-job-info"><div class="lbl">INSPECTION ESTIMATE</div><div class="val">'+esc(j.customer_name||'--')+'</div><div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:4px">'+esc(j.address||'')+'</div><div style="color:rgba(255,255,255,.5);font-size:11px">'+esc(j.inspection_date||'')+'</div></div>'
     +'</div>'
     +'<div class="pdf-sh">Customer &amp; Unit Information</div>'
@@ -118,7 +124,7 @@ function renderPDFMinimal(data){
 
   return '<div id="pdf-doc" style="font-family:\'DM Sans\',sans-serif;font-size:12px;color:#333;line-height:1.6;width:816px;background:#fff;padding:32px">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #333;padding-bottom:16px;margin-bottom:20px">'
-      +'<div><div style="font-size:24px;font-weight:700;color:#0B2A35">'+esc(co.name)+'</div><div style="font-size:11px;color:#666;margin-top:2px">'+esc(co.fullname)+'</div><div style="font-size:10px;color:#999;margin-top:4px">'+esc(co.address)+' | '+esc(co.phone)+' | '+esc(co.email)+'</div></div>'
+      +'<div style="display:flex;align-items:flex-start">'+getPDFLogoHTML(40)+'<div><div style="font-size:24px;font-weight:700;color:#0B2A35">'+esc(co.name)+'</div><div style="font-size:11px;color:#666;margin-top:2px">'+esc(co.fullname)+'</div><div style="font-size:10px;color:#999;margin-top:4px">'+esc(co.address)+' | '+esc(co.phone)+' | '+esc(co.email)+'</div></div></div>'
       +'<div style="text-align:right"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#999">Estimate</div><div style="font-size:14px;font-weight:600;color:#333;margin-top:2px">'+esc(j.customer_name||'--')+'</div><div style="font-size:11px;color:#666">'+esc(j.inspection_date||'')+'</div></div>'
     +'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;font-size:11px">'
@@ -165,7 +171,7 @@ function renderPDFExecutive(data){
 
   return '<div id="pdf-doc" style="font-family:\'DM Sans\',sans-serif;font-size:13px;color:#3C2D0F;line-height:1.5;width:816px;background:#fff">'
     +'<div class="pdf-header">'
-      +'<div class="pdf-company"><h1>'+esc(co.name)+'</h1><p>'+esc(co.fullname)+'</p><div class="addr">'+esc(co.address)+'<br>'+esc(co.phone)+' &middot; '+esc(co.email)+'</div></div>'
+      +'<div class="pdf-company" style="display:flex;align-items:flex-start">'+getPDFLogoHTML(48)+'<div><h1>'+esc(co.name)+'</h1><p>'+esc(co.fullname)+'</p><div class="addr">'+esc(co.address)+'<br>'+esc(co.phone)+' &middot; '+esc(co.email)+'</div></div></div>'
       +'<div class="pdf-job-info"><div class="lbl">EXECUTIVE SUMMARY</div><div class="val">'+esc(j.customer_name||'--')+'</div><div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:4px">'+esc(j.inspection_date||'')+'</div></div>'
     +'</div>'
     +'<div style="padding:24px 28px">'
