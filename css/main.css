@@ -14,7 +14,7 @@ body{font-family:var(--font-b);background:var(--cream2);color:var(--brown);min-h
 #sidebar{width:260px;min-width:260px;background:var(--teal);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;transition:transform .3s ease;z-index:100;}
 #main{flex:1;overflow-x:hidden;display:flex;flex-direction:column;min-width:0}
 .sb-logo{padding:24px 20px 16px;border-bottom:1px solid rgba(180,105,45,.3)}
-.sb-logo-img{width:52px;height:52px;border-radius:10px;object-fit:contain;margin-bottom:10px;box-shadow:0 4px 16px rgba(180,105,45,.4)}
+.sb-logo-img{width:80px;height:80px;border-radius:10px;object-fit:contain;margin-bottom:10px;background:#fff;padding:4px}
 .sb-logo-badge{width:52px;height:52px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:22px;color:var(--white);margin-bottom:10px;box-shadow:0 4px 16px rgba(180,105,45,.4)}
 .sb-logo h1{font-family:var(--font-d);font-size:18px;color:var(--white);line-height:1.2}
 .sb-logo p{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;letter-spacing:.04em}
