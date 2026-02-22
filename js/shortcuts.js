@@ -53,6 +53,7 @@ function initKeyboardShortcuts(){
       closePDFModal();
       closeSidebar();
       closeQRModal();
+      closeShopifyModal();
       var tplModal = document.getElementById('template-modal');
       if(tplModal) tplModal.classList.remove('open');
       var catModal = document.getElementById('catalog-modal');

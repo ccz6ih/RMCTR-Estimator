@@ -123,6 +123,7 @@
         <button class="btn btn-ghost" id="btn-print">&#128424; Print</button>
         <button class="btn btn-ghost" id="btn-share">&#128279; Share</button>
         <button class="btn btn-ghost" id="btn-qr">QR</button>
+        <button class="btn btn-ghost" id="btn-shopify">&#128722; Shopify</button>
         <button class="btn btn-ghost" id="btn-save-tpl">&#128203; Save as Template</button>
         <button class="btn btn-ghost" id="btn-new-version">&#128260; New Version</button>
       </div>
@@ -427,6 +428,19 @@
     <div class="modal-body" style="text-align:center;padding:30px">
       <div id="qr-container"></div>
       <p style="font-size:12px;color:var(--gray);margin-top:14px">Scan to open this estimate (photos excluded)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Shopify Draft Order Modal ═══ -->
+<div id="shopify-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <h3>&#128722; Shopify Draft Order</h3>
+      <button class="btn btn-ghost btn-sm" id="btn-shopify-close">&#10005; Close</button>
+    </div>
+    <div class="modal-body" id="shopify-modal-body" style="padding:20px;font-size:13px">
+      <!-- Populated by JS -->
     </div>
   </div>
 </div>

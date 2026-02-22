@@ -8,7 +8,7 @@
   .job-card-actions, .version-bar,
   .margin-calc, .btn,
   #pdf-modal, #template-modal, #catalog-modal,
-  #qr-modal, #shortcuts-modal,
+  #qr-modal, #shortcuts-modal, #shopify-modal,
   .autocomplete-dropdown {
     display: none !important;
   }

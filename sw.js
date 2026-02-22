@@ -1,4 +1,4 @@
-var CACHE_NAME = 'rmctr-v3';
+var CACHE_NAME = 'rmctr-v4';
 var URLS_TO_CACHE = [
   './',
   './index.html',

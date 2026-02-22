@@ -399,6 +399,7 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('btn-print').addEventListener('click', function(){ window.print(); });
   document.getElementById('btn-share').addEventListener('click', shareEstimateURL);
   document.getElementById('btn-qr').addEventListener('click', showShareQR);
+  document.getElementById('btn-shopify').addEventListener('click', showShopifyExport);
   document.getElementById('btn-save-tpl').addEventListener('click', promptSaveAsTemplate);
   document.getElementById('btn-new-version').addEventListener('click', function(){
     if(currentJobId) createNewVersion(currentJobId);
@@ -447,6 +448,10 @@ document.addEventListener('DOMContentLoaded', function(){
   // QR Modal
   document.getElementById('qr-modal').addEventListener('click', function(e){ if(e.target===this) closeQRModal(); });
   document.getElementById('btn-qr-close').addEventListener('click', closeQRModal);
+
+  // Shopify Modal
+  document.getElementById('shopify-modal').addEventListener('click', function(e){ if(e.target===this) closeShopifyModal(); });
+  document.getElementById('btn-shopify-close').addEventListener('click', closeShopifyModal);
 
   // Template Modal
   document.getElementById('template-modal').addEventListener('click', function(e){
