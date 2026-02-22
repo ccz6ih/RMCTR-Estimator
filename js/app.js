@@ -286,6 +286,86 @@ function registerServiceWorker(){
   }
 }
 
+// ── PWA Install Prompt ───────────────────────────────────────
+var deferredInstallPrompt = null;
+
+function initInstallBanner(){
+  var banner = document.getElementById('install-banner');
+  var instructions = document.getElementById('install-instructions');
+  var installBtn = document.getElementById('install-btn');
+  var dismissBtn = document.getElementById('install-dismiss');
+  if(!banner || !instructions) return;
+
+  // Don't show if already installed as PWA
+  if(window.matchMedia('(display-mode: standalone)').matches) return;
+  if(window.navigator.standalone === true) return;
+
+  // Don't show if user dismissed recently (7 days)
+  var dismissed = localStorage.getItem('rmctr_install_dismissed');
+  if(dismissed && (Date.now() - parseInt(dismissed)) < 7*24*60*60*1000) return;
+
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  var isAndroid = /Android/.test(ua);
+  var isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+
+  // Chrome/Edge "beforeinstallprompt" event (Android + Desktop)
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    instructions.innerHTML = 'Use this app like a native app on your device &mdash; works offline!';
+    installBtn.style.display = '';
+    banner.style.display = 'block';
+  });
+
+  installBtn.addEventListener('click', function(){
+    if(deferredInstallPrompt){
+      // Chrome/Android native install prompt
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function(result){
+        deferredInstallPrompt = null;
+        banner.style.display = 'none';
+        if(result.outcome === 'accepted') toast('App installed!');
+      });
+    } else if(isIOS){
+      // iOS can't auto-install, just highlight the instructions
+      toast('Follow the steps shown in the banner!');
+    }
+  });
+
+  dismissBtn.addEventListener('click', function(){
+    banner.style.display = 'none';
+    localStorage.setItem('rmctr_install_dismissed', String(Date.now()));
+  });
+
+  // iOS Safari — show manual instructions
+  if(isIOS && isSafari){
+    instructions.innerHTML = '<b>To install:</b> Tap the <b>Share</b> button (box with arrow) at the bottom of Safari, then tap <b>"Add to Home Screen"</b>';
+    installBtn.textContent = 'Got it';
+    installBtn.addEventListener('click', function(){
+      banner.style.display = 'none';
+      localStorage.setItem('rmctr_install_dismissed', String(Date.now()));
+    }, {once:true});
+    banner.style.display = 'block';
+    return;
+  }
+
+  // Android Chrome without beforeinstallprompt (fallback)
+  if(isAndroid && !deferredInstallPrompt){
+    setTimeout(function(){
+      if(!deferredInstallPrompt && banner.style.display==='none'){
+        instructions.innerHTML = '<b>To install:</b> Tap the <b>&#8942; menu</b> (top right), then tap <b>"Add to Home Screen"</b> or <b>"Install App"</b>';
+        installBtn.textContent = 'Got it';
+        installBtn.addEventListener('click', function(){
+          banner.style.display = 'none';
+          localStorage.setItem('rmctr_install_dismissed', String(Date.now()));
+        }, {once:true});
+        banner.style.display = 'block';
+      }
+    }, 3000);
+  }
+}
+
 // ── Boot ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
 
@@ -445,6 +525,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // PWA
   registerServiceWorker();
+  initInstallBanner();
 
   // Initial render
   renderDashboard();

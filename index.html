@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#0B2A35"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="icon" type="image/png" href="logo/rmctr-logo.png"/>
+<link rel="apple-touch-icon" href="logo/rmctr-logo.png"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
@@ -455,6 +456,21 @@
 
 <div id="overlay"></div>
 <div id="toast"></div>
+
+<!-- ═══ Install Banner (mobile) ═══ -->
+<div id="install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9998;background:var(--teal);color:var(--white);padding:18px 20px;box-shadow:0 -4px 24px rgba(0,0,0,.3);border-top:3px solid var(--amber)">
+  <div style="display:flex;align-items:center;gap:14px;max-width:600px;margin:0 auto">
+    <img src="logo/rmctr-logo.png" alt="" style="width:48px;height:48px;border-radius:10px;background:#fff;padding:3px;flex-shrink:0"/>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;font-size:14px;margin-bottom:3px">Install RMCTR Estimator</div>
+      <div id="install-instructions" style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.4"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+      <button id="install-btn" class="btn btn-sm btn-primary" style="min-width:80px;justify-content:center">Install</button>
+      <button id="install-dismiss" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:var(--font-b);padding:4px">Not now</button>
+    </div>
+  </div>
+</div>
 
 <script src="js/data.js"></script>
 <script src="js/form.js"></script>
